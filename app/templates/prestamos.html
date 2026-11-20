@@ -1,0 +1,420 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de préstamos | Drop by Drop</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/prestamos.css') }}">
+
+    <script
+        src="{{ url_for('static', filename='js/prestamos.js') }}"
+        defer>
+    </script>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">D</div>
+            <div>
+                <h2>DROP BY DROP</h2>
+                <small>Gestión financiera</small>
+            </div>
+        </div>
+
+        <div class="menu-title">MENÚ PRINCIPAL</div>
+
+        <nav class="menu">
+
+            <a href="{{ url_for('dashboard.panel') }}"
+               class="menu-item">
+                <span>▦</span> Dashboard
+            </a>
+
+            <a href="{{ url_for('usuarios.listar_usuarios') }}"
+               class="menu-item">
+                <span>♙</span> Usuarios
+            </a>
+
+            <a href="{{ url_for('prestamos.listar_prestamos') }}"
+               class="menu-item active">
+                <span>▤</span> Préstamos
+            </a>
+
+            <a href="{{ url_for('pagos.listar_pagos') }}"
+               class="menu-item">
+                <span>◷</span> Pagos
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="profile">
+                <div class="avatar">
+                    {{ current_user.nombres[0]|upper }}
+                </div>
+
+                <div class="profile-info">
+                    <strong>{{ current_user.nombres }}</strong>
+                    <small>{{ current_user.rol }}</small>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="logout-button">
+                    Cerrar sesión
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <h1>Gestión de préstamos</h1>
+                <p>Registro y administración de operaciones financieras</p>
+            </div>
+
+            <div class="user-badge">
+                <span class="status-dot"></span>
+                {{ current_user.usuario }}
+            </div>
+        </header>
+
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+            {% if mensajes %}
+                {% for categoria, mensaje in mensajes %}
+                    <div class="alert {{ categoria }}">
+                        {{ mensaje }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="loan-summary">
+            <div>
+                <h2>Registrar nuevo préstamo</h2>
+                <p>
+                    Ingresa la información para calcular automáticamente
+                    el préstamo.
+                </p>
+            </div>
+        </section>
+
+        <section class="loan-form-card">
+
+            <div class="card-heading">
+                <div class="heading-icon">D</div>
+                <div>
+                    <h3>Información del préstamo</h3>
+                    <p>Los cálculos se realizarán automáticamente.</p>
+                </div>
+            </div>
+
+            {% if usuarios %}
+
+            <form method="POST"
+                  action="{{ url_for('prestamos.listar_prestamos') }}"
+                  id="loanForm">
+
+                <div class="loan-grid">
+
+                    <div class="form-group full-width">
+                        <label for="usuario_id">
+                            Cliente que recibe el préstamo
+                        </label>
+
+                        <select name="usuario_id" id="usuario_id" required>
+                            <option value="">Selecciona un usuario</option>
+
+                            {% for usuario in usuarios %}
+                            <option value="{{ usuario.id_usuario }}">
+                                {{ usuario.nombres }} {{ usuario.apellidos }}
+                                - {{ usuario.cedula }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="capital">Capital prestado ($)</label>
+
+                        <input
+                            type="number"
+                            name="capital"
+                            id="capital"
+                            min="0.01"
+                            step="0.01"
+                            placeholder="Ej. 100000"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="porcentaje_interes">
+                            Interés mensual (%)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="porcentaje_interes"
+                            id="porcentaje_interes"
+                            min="0.01"
+                            max="100"
+                            step="0.01"
+                            placeholder="Ej. 5"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numero_cuotas">Número de cuotas</label>
+
+                        <input
+                            type="number"
+                            name="numero_cuotas"
+                            id="numero_cuotas"
+                            min="1"
+                            step="1"
+                            placeholder="Ej. 7"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_prestamo">Fecha del préstamo</label>
+
+                        <input
+                            type="date"
+                            name="fecha_prestamo"
+                            id="fecha_prestamo"
+                            value="{{ fecha_actual }}"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <div class="calculation-section">
+
+                    <div class="calculation-heading">
+                        <h3>Resumen del préstamo</h3>
+                        <span>Cálculo automático</span>
+                    </div>
+
+                    <div class="calculation-grid">
+
+                        <div class="calculation-item">
+                            <span>Interés mensual</span>
+                            <strong id="interesMensual">$0,00</strong>
+                        </div>
+
+                        <div class="calculation-item">
+                            <span>Interés acumulado</span>
+                            <strong id="interesAcumulado">$0,00</strong>
+                        </div>
+
+                        <div class="calculation-item">
+                            <span>Pago total</span>
+                            <strong id="pagoTotal">$0,00</strong>
+                        </div>
+
+                        <div class="calculation-item">
+                            <span>Cuota mensual exacta</span>
+                            <strong id="cuotaMensual">$0,00</strong>
+                        </div>
+
+                        <div class="calculation-item highlight">
+                            <span>Cuota mensual real</span>
+                            <strong id="cuotaReal">$0</strong>
+                        </div>
+
+                        <div class="calculation-item">
+                            <span>Fecha de vencimiento</span>
+                            <strong id="fechaVencimiento">
+                                Pendiente de cálculo
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <p class="calculation-note">
+                        La cuota real se redondea al millar más cercano,
+                        siguiendo el cálculo del archivo Excel.
+                    </p>
+
+                    <p class="calculation-note">
+                        La fecha de vencimiento se calcula sumando
+                        el número de cuotas mensuales a la fecha del préstamo.
+                    </p>
+
+                </div>
+
+                <button type="submit" class="btn-save-loan">
+                    Registrar préstamo
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <div class="empty-users">
+                <h3>No hay usuarios activos</h3>
+                <p>
+                    Debes tener al menos un usuario activo para registrar
+                    un préstamo.
+                </p>
+            </div>
+
+            {% endif %}
+
+        </section>
+
+        <section class="loans-table-card">
+
+            <div class="table-heading">
+                <div>
+                    <h3>Préstamos registrados</h3>
+                    <p>Historial de operaciones financieras.</p>
+                </div>
+
+                <span class="record-count">
+                    {{ prestamos|length }} registros
+                </span>
+            </div>
+
+            <div class="table-responsive">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Capital</th>
+                            <th>Interés mensual</th>
+                            <th>Cuotas</th>
+                            <th>Interés acumulado</th>
+                            <th>Pago total</th>
+                            <th>Cuota real</th>
+                            <th>Saldo pendiente</th>
+                            <th>Fecha</th>
+                            <th>Vencimiento</th>
+                            <th>Estado</th>
+                            <th>Comprobante</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for prestamo in prestamos %}
+
+                        <tr>
+                            <td>{{ prestamo.id_prestamo }}</td>
+
+                            <td class="client-name">
+                                {{ prestamo.usuario.nombres }}
+                                {{ prestamo.usuario.apellidos }}
+                            </td>
+
+                            <td>
+                                ${{ "{:,.2f}".format(prestamo.capital) }}
+                            </td>
+
+                            <td>
+                                {{ "{:.2f}".format(prestamo.porcentaje_interes * 100) }} %
+                            </td>
+
+                            <td>{{ prestamo.numero_cuotas }}</td>
+
+                            <td>
+                                ${{ "{:,.2f}".format(prestamo.interes_acumulado) }}
+                            </td>
+
+                            <td>
+                                ${{ "{:,.2f}".format(prestamo.pago_total) }}
+                            </td>
+
+                            <td>
+                                ${{ "{:,.0f}".format(prestamo.cuota_real) }}
+                            </td>
+
+                            <td class="balance">
+                                ${{ "{:,.2f}".format(prestamo.saldo_pendiente) }}
+                            </td>
+
+                            <td>
+                                {{ prestamo.fecha_prestamo.strftime('%d/%m/%Y') }}
+                            </td>
+
+                            <td>
+                                {% if prestamo.fecha_vencimiento %}
+                                    {{ prestamo.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    Pendiente
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span class="status-badge {{ prestamo.estado|lower }}">
+                                    {{ prestamo.estado }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{{ url_for('prestamos.descargar_comprobante', prestamo_id=prestamo.id_prestamo) }}"
+                                    class="btn-download-pdf"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Descargar PDF
+                                </a>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="13" class="empty-message">
+                                Todavía no hay préstamos registrados.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <footer>
+            © 2026 Drop by Drop. By Alejandro Calle.
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>

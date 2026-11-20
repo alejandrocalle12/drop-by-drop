@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Usuarios | Drop by Drop</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/usuarios.css') }}">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">D</div>
+            <div>
+                <h2>DROP BY DROP</h2>
+                <small>Gestión financiera</small>
+            </div>
+        </div>
+
+        <div class="menu-title">MENÚ PRINCIPAL</div>
+
+        <nav class="menu">
+
+            <a href="{{ url_for('dashboard.panel') }}"
+               class="menu-item">
+                <span>▦</span> Dashboard
+            </a>
+
+            <a href="{{ url_for('usuarios.listar_usuarios') }}"
+               class="menu-item active">
+                <span>♙</span> Usuarios
+            </a>
+
+            <a href="{{ url_for('prestamos.listar_prestamos') }}"
+               class="menu-item">
+                <span>▤</span> Préstamos
+            </a>
+
+            <a href="{{ url_for('pagos.listar_pagos') }}"
+               class="menu-item">
+                <span>◷</span> Pagos
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="profile">
+                <div class="avatar">
+                    {{ current_user.nombres[0]|upper }}
+                </div>
+
+                <div class="profile-info">
+                    <strong>{{ current_user.nombres }}</strong>
+                    <small>{{ current_user.rol }}</small>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="logout-button">
+                    Cerrar sesión
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <h1>Usuarios registrados</h1>
+                <p>Administración de las cuentas de Drop by Drop</p>
+            </div>
+
+            <div class="user-badge">
+                <span class="status-dot"></span>
+                {{ current_user.usuario }}
+            </div>
+        </header>
+
+        <section class="user-summary">
+
+            <div>
+                <h2>Listado de usuarios</h2>
+                <p>Consulta de las personas inscritas en la plataforma.</p>
+            </div>
+
+            <div class="total-users">
+                <span>Total registrados</span>
+                <strong>{{ usuarios|length }}</strong>
+            </div>
+
+        </section>
+
+        <section class="users-table-card">
+
+            <div class="table-header">
+                <h3>Directorio de usuarios</h3>
+                <span>{{ usuarios|length }} registros</span>
+            </div>
+
+            <div class="table-responsive">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre completo</th>
+                            <th>Usuario</th>
+                            <th>Correo electrónico</th>
+                            <th>Teléfono</th>
+                            <th>Cédula</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Fecha de registro</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for usuario in usuarios %}
+
+                        <tr>
+                            <td>{{ usuario.id_usuario }}</td>
+
+                            <td class="name-cell">
+                                {{ usuario.nombres }} {{ usuario.apellidos }}
+                            </td>
+
+                            <td>{{ usuario.usuario }}</td>
+
+                            <td>{{ usuario.correo }}</td>
+
+                            <td>{{ usuario.telefono }}</td>
+
+                            <td>{{ usuario.cedula }}</td>
+
+                            <td>
+                                <span class="role-badge {{ usuario.rol|lower }}">
+                                    {{ usuario.rol }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="status-badge {{ usuario.estado|lower }}">
+                                    {{ usuario.estado }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if usuario.fecha_registro %}
+                                    {{ usuario.fecha_registro.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="9" class="empty-message">
+                                No hay usuarios registrados.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <footer>
+            © 2026 Drop by Drop. By Alejandro Calle.
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de pagos | Drop by Drop</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/pagos.css') }}">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">D</div>
+            <div>
+                <h2>DROP BY DROP</h2>
+                <small>Gestión financiera</small>
+            </div>
+        </div>
+
+        <div class="menu-title">MENÚ PRINCIPAL</div>
+
+        <nav class="menu">
+
+            <a href="{{ url_for('dashboard.panel') }}" class="menu-item">
+                <span>▦</span> Dashboard
+            </a>
+
+            <a href="{{ url_for('usuarios.listar_usuarios') }}"
+               class="menu-item">
+                <span>♙</span> Usuarios
+            </a>
+
+            <a href="{{ url_for('prestamos.listar_prestamos') }}"
+               class="menu-item">
+                <span>▤</span> Préstamos
+            </a>
+
+            <a href="{{ url_for('pagos.listar_pagos') }}"
+               class="menu-item active">
+                <span>◷</span> Pagos
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="profile">
+                <div class="avatar">
+                    {{ current_user.nombres[0]|upper }}
+                </div>
+
+                <div class="profile-info">
+                    <strong>{{ current_user.nombres }}</strong>
+                    <small>{{ current_user.rol }}</small>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="logout-button">
+                    Cerrar sesión
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <h1>Gestión de pagos</h1>
+                <p>Registro de abonos e historial de pagos</p>
+            </div>
+
+            <div class="user-badge">
+                <span class="status-dot"></span>
+                {{ current_user.usuario }}
+            </div>
+        </header>
+
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+            {% if mensajes %}
+                {% for categoria, mensaje in mensajes %}
+                    <div class="alert {{ categoria }}">
+                        {{ mensaje }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="payment-summary">
+
+            <div>
+                <h2>Registrar nuevo pago</h2>
+                <p>Selecciona un préstamo y registra el abono realizado por el cliente.</p>
+            </div>
+
+            <div class="total-collected">
+                <span>Total recaudado</span>
+                <strong>
+                    ${{ "{:,.2f}".format(total_recaudado|float) }}
+                </strong>
+            </div>
+
+        </section>
+
+        <section class="payment-form-card">
+
+            <div class="payment-heading">
+                <div class="payment-icon">$</div>
+
+                <div>
+                    <h3>Información del pago</h3>
+                    <p>Registra el movimiento financiero.</p>
+                </div>
+            </div>
+
+            {% if prestamos %}
+
+            <form method="POST"
+                  action="{{ url_for('pagos.listar_pagos') }}"
+                  id="paymentForm">
+
+                <div class="payment-grid">
+
+                    <div class="form-group full-width">
+
+                        <label for="prestamo_id">
+                            Seleccionar préstamo
+                        </label>
+
+                        <select name="prestamo_id"
+                                id="prestamo_id"
+                                required>
+
+                            <option value="">Selecciona un préstamo</option>
+
+                            {% for prestamo in prestamos %}
+
+                            <option
+                                value="{{ prestamo.id_prestamo }}"
+                                data-cliente="{{ prestamo.usuario.nombres }} {{ prestamo.usuario.apellidos }}"
+                                data-capital="{{ prestamo.capital }}"
+                                data-saldo="{{ prestamo.saldo_pendiente }}"
+                            >
+                                Préstamo #{{ prestamo.id_prestamo }}
+                                - {{ prestamo.usuario.nombres }}
+                                {{ prestamo.usuario.apellidos }}
+                                - Saldo: ${{ "{:,.2f}".format(prestamo.saldo_pendiente) }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text"
+                               id="cliente"
+                               readonly
+                               placeholder="Selecciona un préstamo">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Capital original</label>
+                        <input type="text"
+                               id="capital"
+                               readonly
+                               placeholder="$0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Saldo pendiente</label>
+                        <input type="text"
+                               id="saldo"
+                               readonly
+                               placeholder="$0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="valor_pago">Valor del abono ($)</label>
+
+                        <input type="number"
+                               name="valor_pago"
+                               id="valor_pago"
+                               min="0.01"
+                               step="0.01"
+                               placeholder="Ej. 20000"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_pago">Fecha del pago</label>
+
+                        <input type="date"
+                               name="fecha_pago"
+                               id="fecha_pago"
+                               value="{{ fecha_actual }}"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observacion">Observación</label>
+
+                        <input type="text"
+                               name="observacion"
+                               id="observacion"
+                               maxlength="255"
+                               placeholder="Observación opcional">
+                    </div>
+
+                </div>
+
+                <div class="payment-preview">
+
+                    <div>
+                        <span>Saldo anterior</span>
+                        <strong id="saldoAnterior">$0</strong>
+                    </div>
+
+                    <div>
+                        <span>Valor del abono</span>
+                        <strong id="abonoPreview">$0</strong>
+                    </div>
+
+                    <div class="new-balance">
+                        <span>Nuevo saldo estimado</span>
+                        <strong id="nuevoSaldo">$0</strong>
+                    </div>
+
+                    <p id="paymentWarning" class="payment-warning"></p>
+
+                </div>
+
+                <button type="submit"
+                        class="btn-save-payment"
+                        id="btnSavePayment">
+
+                    Registrar pago
+
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <div class="empty-payments">
+                <h3>No hay préstamos pendientes</h3>
+                <p>Actualmente no existen préstamos con saldo pendiente para recibir pagos.</p>
+            </div>
+
+            {% endif %}
+
+        </section>
+
+        <section class="payments-history">
+
+            <div class="history-heading">
+                <div>
+                    <h3>Historial de pagos</h3>
+                    <p>Todos los abonos registrados en Drop by Drop.</p>
+                </div>
+
+                <span>{{ pagos|length }} registros</span>
+            </div>
+
+            <div class="table-responsive">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID pago</th>
+                            <th>Préstamo</th>
+                            <th>Cliente</th>
+                            <th>Valor pagado</th>
+                            <th>Fecha de pago</th>
+                            <th>Observación</th>
+                            <th>Saldo actual</th>
+                            <th>Comprobante PDF</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for pago in pagos %}
+
+                        <tr>
+
+                            <td>{{ pago.id_pago }}</td>
+
+                            <td>#{{ pago.prestamo_id }}</td>
+
+                            <td class="client-name">
+                                {{ pago.prestamo.usuario.nombres }}
+                                {{ pago.prestamo.usuario.apellidos }}
+                            </td>
+
+                            <td class="payment-value">
+                                ${{ "{:,.2f}".format(pago.valor_pago) }}
+                            </td>
+
+                            <td>
+                                {{ pago.fecha_pago.strftime('%d/%m/%Y') }}
+                            </td>
+
+                            <td>
+                                {{ pago.observacion or '-' }}
+                            </td>
+
+                            <td>
+                                ${{ "{:,.2f}".format(pago.prestamo.saldo_pendiente) }}
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{{ url_for('pagos.descargar_comprobante_pago', pago_id=pago.id_pago) }}"
+                                    class="btn-download-pdf"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Descargar PDF
+                                </a>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="8" class="empty-message">
+                                Todavía no hay pagos registrados.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <footer>
+            © 2026 Drop by Drop. By Alejandro Calle.
+        </footer>
+
+    </main>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/pagos.js') }}" defer></script>
+
+</body>
+</html>

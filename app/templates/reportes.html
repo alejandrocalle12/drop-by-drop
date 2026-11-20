@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes | Drop by Drop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reportes.css') }}">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">D</div>
+            <div><h2>DROP BY DROP</h2><small>Gestión financiera</small></div>
+        </div>
+        <div class="menu-title">MENÚ PRINCIPAL</div>
+        <nav class="menu">
+            <a href="{{ url_for('dashboard.panel') }}" class="menu-item"><span>▦</span> Dashboard</a>
+            <a href="{{ url_for('usuarios.listar_usuarios') }}" class="menu-item"><span>♙</span> Usuarios</a>
+            <a href="{{ url_for('prestamos.listar_prestamos') }}" class="menu-item"><span>▤</span> Préstamos</a>
+            <a href="{{ url_for('pagos.listar_pagos') }}" class="menu-item"><span>◷</span> Pagos</a>
+            <a href="{{ url_for('reportes.resumen_reportes') }}" class="menu-item active"><span>▥</span> Reportes</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="profile">
+                <div class="avatar">{{ current_user.nombres[0]|upper }}</div>
+                <div class="profile-info"><strong>{{ current_user.nombres }}</strong><small>{{ current_user.rol }}</small></div>
+            </div>
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="logout-button">Cerrar sesión</button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main-content reports-page">
+        <header class="topbar">
+            <div><h1>Reportes y estadísticas</h1><p>Consulta el comportamiento financiero de Drop by Drop.</p></div>
+            <div class="user-badge"><span class="status-dot"></span>{{ current_user.usuario }}</div>
+        </header>
+
+        {% if mensaje_error %}<div class="report-alert">{{ mensaje_error }}</div>{% endif %}
+
+        <section class="report-filter content-card">
+            <div class="section-heading"><div><h3>Filtrar por período</h3><p>El rango se aplica a los préstamos registrados y a los pagos recibidos.</p></div></div>
+            <form method="GET" action="{{ url_for('reportes.resumen_reportes') }}" class="filter-form">
+                <label>Desde<input type="date" name="desde" value="{{ fecha_desde.isoformat() }}" required></label>
+                <label>Hasta<input type="date" name="hasta" value="{{ fecha_hasta.isoformat() }}" required></label>
+                <button type="submit" class="filter-button">Consultar</button>
+                <a class="clear-filter" href="{{ url_for('reportes.resumen_reportes') }}">Mes actual</a>
+                <a class="export-button" href="{{ url_for('reportes.exportar_reportes_excel', desde=fecha_desde.isoformat(), hasta=fecha_hasta.isoformat()) }}">Exportar a Excel</a>
+                <a class="export-button export-pdf-button" href="{{ url_for('reportes.exportar_reportes_pdf', desde=fecha_desde.isoformat(), hasta=fecha_hasta.isoformat()) }}">Exportar a PDF</a>
+            </form>
+        </section>
+
+        <section class="statistics report-statistics">
+            <article class="stat-card"><div class="stat-icon purple">▤</div><div class="stat-info"><span>Capital colocado</span><strong>${{ "{:,.0f}".format(capital_periodo|float) }}</strong><small>Préstamos del período</small></div></article>
+            <article class="stat-card"><div class="stat-icon green">$</div><div class="stat-info"><span>Recaudo recibido</span><strong>${{ "{:,.0f}".format(recaudo_periodo|float) }}</strong><small>Pagos del período</small></div></article>
+            <article class="stat-card"><div class="stat-icon orange">◷</div><div class="stat-info"><span>Cartera pendiente</span><strong>${{ "{:,.0f}".format(cartera_pendiente|float) }}</strong><small>Saldo actual de todos los créditos</small></div></article>
+            <article class="stat-card"><div class="stat-icon blue">%</div><div class="stat-info"><span>Intereses generados</span><strong>${{ "{:,.0f}".format(intereses_periodo|float) }}</strong><small>Préstamos del período</small></div></article>
+        </section>
+
+        <section class="report-status-grid">
+            <article><span>Clientes registrados</span><strong>{{ total_usuarios }}</strong></article>
+            <article><span>Préstamos registrados</span><strong>{{ total_prestamos }}</strong></article>
+            <article><span>Activos</span><strong>{{ prestamos_activos }}</strong></article>
+            <article><span>Pagados</span><strong>{{ prestamos_pagados }}</strong></article>
+            <article><span>Vencidos</span><strong>{{ prestamos_vencidos }}</strong></article>
+        </section>
+
+        <section class="content-card report-table-card">
+            <div class="section-heading"><div><h3>Préstamos registrados en el período</h3><p>{{ prestamos_periodo|length }} operaciones entre {{ fecha_desde.strftime('%d/%m/%Y') }} y {{ fecha_hasta.strftime('%d/%m/%Y') }}.</p></div></div>
+            <div class="table-responsive"><table class="report-table">
+                <thead><tr><th>Crédito</th><th>Cliente</th><th>Fecha</th><th>Capital</th><th>Intereses</th><th>Total</th><th>Saldo actual</th><th>Estado</th></tr></thead>
+                <tbody>
+                {% for prestamo in prestamos_periodo %}
+                    <tr><td>#{{ prestamo.id_prestamo }}</td><td>{{ prestamo.usuario.nombres }} {{ prestamo.usuario.apellidos }}</td><td>{{ prestamo.fecha_prestamo.strftime('%d/%m/%Y') }}</td><td>${{ "{:,.0f}".format(prestamo.capital|float) }}</td><td>${{ "{:,.0f}".format(prestamo.interes_acumulado|float) }}</td><td>${{ "{:,.0f}".format(prestamo.pago_total|float) }}</td><td>${{ "{:,.0f}".format(prestamo.saldo_pendiente|float) }}</td><td><span class="report-status status-{{ prestamo.estado|lower }}">{{ prestamo.estado }}</span></td></tr>
+                {% else %}<tr><td colspan="8" class="empty-row">No hay préstamos registrados en este período.</td></tr>{% endfor %}
+                </tbody>
+            </table></div>
+        </section>
+
+        <section class="content-card report-table-card">
+            <div class="section-heading"><div><h3>Pagos recibidos en el período</h3><p>{{ pagos_periodo|length }} pagos registrados durante el rango seleccionado.</p></div></div>
+            <div class="table-responsive"><table class="report-table">
+                <thead><tr><th>Pago</th><th>Crédito</th><th>Cliente</th><th>Fecha</th><th>Valor recibido</th><th>Observación</th></tr></thead>
+                <tbody>
+                {% for pago in pagos_periodo %}
+                    <tr><td>#{{ pago.id_pago }}</td><td>#{{ pago.prestamo.id_prestamo }}</td><td>{{ pago.prestamo.usuario.nombres }} {{ pago.prestamo.usuario.apellidos }}</td><td>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</td><td>${{ "{:,.0f}".format(pago.valor_pago|float) }}</td><td>{{ pago.observacion or 'Sin observación' }}</td></tr>
+                {% else %}<tr><td colspan="6" class="empty-row">No hay pagos registrados en este período.</td></tr>{% endfor %}
+                </tbody>
+            </table></div>
+        </section>
+
+        <footer>© 2026 Drop by Drop. By Alejandro Calle.</footer>
+    </main>
+</div>
+</body>
+</html>

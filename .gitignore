@@ -1,0 +1,39 @@
+
+# Variables de entorno y credenciales
+.env
+.env.*
+!.env.example
+
+# Entornos virtuales de Python
+venv/
+.venv/
+env/
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de configuración de editores
+.vscode/
+.idea/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Registros
+*.log
+
+# Bases de datos y copias de seguridad
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+
+# Archivos temporales y respaldos
+*.tmp
+*.old
+*.orig

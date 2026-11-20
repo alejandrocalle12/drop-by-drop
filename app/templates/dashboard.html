@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | Drop by Drop</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">D</div>
+            <div>
+                <h2>DROP BY DROP</h2>
+                <small>Gestión financiera</small>
+            </div>
+        </div>
+
+        <div class="menu-title">MENÚ PRINCIPAL</div>
+
+        <nav class="menu">
+
+            <a href="{{ url_for('dashboard.panel') }}" class="menu-item active">
+                <span>▦</span> Dashboard
+            </a>
+
+            {% if current_user.rol == 'ADMIN' %}
+            <a href="{{ url_for('usuarios.listar_usuarios') }}" class="menu-item">
+                <span>♙</span> Usuarios
+            </a>
+
+            <a href="{{ url_for('prestamos.listar_prestamos') }}" class="menu-item">
+                <span>▤</span> Préstamos
+            </a>
+
+            <a href="{{ url_for('pagos.listar_pagos') }}" class="menu-item">
+                <span>◷</span> Pagos
+            </a>
+
+            <a href="{{ url_for('reportes.resumen_reportes') }}" class="menu-item">
+                <span>▥</span> Reportes
+            </a>
+            {% endif %}
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="profile">
+                <div class="avatar">
+                    {{ current_user.nombres[0]|upper }}
+                </div>
+
+                <div class="profile-info">
+                    <strong>{{ current_user.nombres }}</strong>
+                    <small>{{ current_user.rol }}</small>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="logout-button">
+                    Cerrar sesión
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Resumen general de Drop by Drop</p>
+            </div>
+
+            <div class="user-badge">
+                <span class="status-dot"></span>
+                {{ current_user.usuario }}
+            </div>
+        </header>
+
+        <section class="welcome">
+            <div>
+                <h2>Bienvenido, {{ current_user.nombres }}</h2>
+                <p>
+                    {% if current_user.rol == 'ADMIN' %}
+                        Este es el resumen administrativo de tu plataforma.
+                    {% else %}
+                        Consulta el resumen de tus préstamos.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="welcome-icon">D</div>
+        </section>
+
+        {% if current_user.rol == 'USER' %}
+        <section class="statistics customer-statistics">
+            <article class="stat-card">
+                <div class="stat-icon purple">▤</div>
+                <div class="stat-info">
+                    <span>Mis créditos</span>
+                    <strong>{{ total_prestamos }}</strong>
+                    <small>Total de créditos registrados</small>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon orange">$</div>
+                <div class="stat-info">
+                    <span>Saldo pendiente</span>
+                    <strong>${{ "{:,.0f}".format(saldo_pendiente|float) }}</strong>
+                    <small>Valor pendiente por pagar</small>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon green">✓</div>
+                <div class="stat-info">
+                    <span>Total abonado</span>
+                    <strong>${{ "{:,.0f}".format(total_abonado|float) }}</strong>
+                    <small>Suma de tus pagos registrados</small>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon blue">◷</div>
+                <div class="stat-info">
+                    <span>Créditos activos</span>
+                    <strong>{{ prestamos_activos }}</strong>
+                    <small>{{ prestamos_pagados }} pagados · {{ prestamos_vencidos }} vencidos</small>
+                </div>
+            </article>
+        </section>
+
+        <section class="customer-history">
+            <div class="section-heading">
+                <div>
+                    <h3>Mi historial de créditos</h3>
+                    <p>Consulta el detalle de cada crédito y los pagos que has realizado.</p>
+                </div>
+            </div>
+
+            {% if prestamos_usuario %}
+                {% for prestamo in prestamos_usuario %}
+                <article class="credit-card">
+                    <div class="credit-header">
+                        <div>
+                            <h4>Crédito #{{ prestamo.id_prestamo }}</h4>
+                            <p>Fecha del crédito: {{ prestamo.fecha_prestamo.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                        <span class="credit-status status-{{ prestamo.estado|lower }}">{{ prestamo.estado }}</span>
+                    </div>
+
+                    <div class="credit-details">
+                        <div><span>Capital prestado</span><strong>${{ "{:,.0f}".format(prestamo.capital|float) }}</strong></div>
+                        <div><span>Interés acumulado</span><strong>${{ "{:,.0f}".format(prestamo.interes_acumulado|float) }}</strong></div>
+                        <div><span>Total del crédito</span><strong>${{ "{:,.0f}".format(prestamo.pago_total|float) }}</strong></div>
+                        <div><span>Número de cuotas</span><strong>{{ prestamo.numero_cuotas }}</strong></div>
+                        <div><span>Valor de cuota</span><strong>${{ "{:,.0f}".format(prestamo.cuota_real|float) }}</strong></div>
+                        <div><span>Total abonado</span><strong>${{ "{:,.0f}".format(prestamo.total_abonado|float) }}</strong></div>
+                        <div class="remaining-balance"><span>Saldo pendiente</span><strong>${{ "{:,.0f}".format(prestamo.saldo_pendiente|float) }}</strong></div>
+                        <div><span>Fecha de vencimiento</span><strong>{{ prestamo.fecha_vencimiento.strftime('%d/%m/%Y') if prestamo.fecha_vencimiento else 'No definida' }}</strong></div>
+                    </div>
+
+                    <div class="credit-actions">
+                        <a href="{{ url_for('prestamos.descargar_comprobante', prestamo_id=prestamo.id_prestamo) }}" class="document-link">Descargar comprobante del crédito</a>
+                    </div>
+
+                    <div class="payments-history">
+                        <h5>Historial de cuotas y pagos</h5>
+                        {% if prestamo.pagos_ordenados %}
+                        <div class="table-responsive">
+                            <table class="customer-payments-table">
+                                <thead><tr><th>Fecha de pago</th><th>Valor pagado</th><th>Observación</th><th>Comprobante</th></tr></thead>
+                                <tbody>
+                                    {% for pago in prestamo.pagos_ordenados %}
+                                    <tr>
+                                        <td>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                                        <td>${{ "{:,.0f}".format(pago.valor_pago|float) }}</td>
+                                        <td>{{ pago.observacion or 'Sin observación' }}</td>
+                                        <td><a href="{{ url_for('pagos.descargar_comprobante_pago', pago_id=pago.id_pago) }}" class="document-link">Ver PDF</a></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                            <p class="empty-payments">Todavía no registras pagos para este crédito.</p>
+                        {% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="empty-history">
+                    <h4>Aún no tienes créditos registrados</h4>
+                    <p>Cuando se registre un crédito a tu nombre, podrás consultar aquí sus detalles y el historial de pagos.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        {% else %}
+        <section class="statistics">
+
+            {% if current_user.rol == 'ADMIN' %}
+
+            <article class="stat-card">
+                <div class="stat-icon blue">♙</div>
+                <div class="stat-info">
+                    <span>Usuarios registrados</span>
+                    <strong>{{ total_usuarios }}</strong>
+                    <small>Total de usuarios</small>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-icon green">✓</div>
+                <div class="stat-info">
+                    <span>Usuarios activos</span>
+                    <strong>{{ usuarios_activos }}</strong>
+                    <small>Cuentas habilitadas</small>
+                </div>
+            </article>
+
+            {% endif %}
+
+            <article class="stat-card">
+                <div class="stat-icon purple">▤</div>
+                <div class="stat-info">
+                    <span>Préstamos registrados</span>
+                    <strong>{{ total_prestamos }}</strong>
+                    <small>Operaciones registradas</small>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-icon orange">$</div>
+                <div class="stat-info">
+                    <span>Saldo pendiente</span>
+                    <strong>
+                        ${{ "{:,.0f}".format(saldo_pendiente|float) }}
+                    </strong>
+                    <small>Valor pendiente de pago</small>
+                </div>
+            </article>
+
+        </section>
+
+        <section class="content-card">
+
+            <div class="section-heading">
+                <div>
+                    <h3>Panel de administración</h3>
+                    <p>Accesos disponibles en la plataforma</p>
+                </div>
+            </div>
+
+            <div class="quick-access">
+
+                {% if current_user.rol == 'ADMIN' %}
+
+                <a href="{{ url_for('usuarios.listar_usuarios') }}"
+                   class="access-card">
+                    <div class="access-icon blue">♙</div>
+                    <div>
+                        <h4>Usuarios registrados</h4>
+                        <p>Consultar y revisar las cuentas inscritas.</p>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                <a href="{{ url_for('prestamos.listar_prestamos') }}"
+                   class="access-card">
+                    <div class="access-icon green">▤</div>
+                    <div>
+                        <h4>Gestión de préstamos</h4>
+                        <p>Registrar y consultar préstamos.</p>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                <a href="{{ url_for('pagos.listar_pagos') }}"
+                   class="access-card">
+                    <div class="access-icon orange">$</div>
+                    <div>
+                        <h4>Historial de pagos</h4>
+                        <p>Consultar abonos y saldos pendientes.</p>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                <a href="{{ url_for('reportes.resumen_reportes') }}"
+                   class="access-card">
+                    <div class="access-icon blue">▥</div>
+                    <div>
+                        <h4>Reportes y estadísticas</h4>
+                        <p>Consultar capital colocado, recaudos y cartera.</p>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+        {% endif %}
+
+        <footer>
+            © 2026 Drop by Drop. By Alejandro Calle.
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>

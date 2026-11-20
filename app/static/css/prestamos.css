@@ -1,0 +1,306 @@
+
+.loan-summary {
+    margin-bottom: 20px;
+}
+
+.loan-summary h2 {
+    color: #142c49;
+    font-size: 21px;
+    margin-bottom: 7px;
+}
+
+.loan-summary p {
+    color: #718096;
+    font-size: 13px;
+}
+
+.loan-form-card,
+.loans-table-card {
+    background: white;
+    border: 1px solid #e7edf3;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.card-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 25px;
+}
+
+.heading-icon {
+    width: 43px;
+    height: 43px;
+    background: #e1f6ed;
+    color: #138b69;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.card-heading h3,
+.table-heading h3 {
+    color: #142c49;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.card-heading p,
+.table-heading p {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.loan-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 13px;
+    color: #334155;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    color: #334155;
+    background: white;
+    outline: none;
+    transition: 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #16a085;
+    box-shadow: 0 0 0 3px rgba(22, 160, 133, 0.12);
+}
+
+.calculation-section {
+    margin-top: 28px;
+    background: #f8fafc;
+    border: 1px solid #e7edf3;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.calculation-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.calculation-heading h3 {
+    color: #142c49;
+    font-size: 15px;
+}
+
+.calculation-heading span {
+    color: #138b69;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.calculation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.calculation-item {
+    background: white;
+    border: 1px solid #e7edf3;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.calculation-item span {
+    color: #718096;
+    font-size: 11px;
+}
+
+.calculation-item strong {
+    color: #142c49;
+    font-size: 17px;
+}
+
+.calculation-item.highlight {
+    background: #e9f7f3;
+    border-color: #b6e3d5;
+}
+
+.calculation-item.highlight strong {
+    color: #0f766e;
+    font-size: 21px;
+}
+
+.calculation-note {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 15px;
+    line-height: 1.5;
+}
+
+.btn-save-loan {
+    width: 100%;
+    padding: 15px;
+    margin-top: 25px;
+    background: #142c49;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-save-loan:hover {
+    background: #138b69;
+}
+
+.loans-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.table-heading {
+    padding: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #e7edf3;
+}
+
+.record-count {
+    background: #e9f7f3;
+    color: #0f766e;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    min-width: 1250px;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f1f5f9;
+}
+
+th {
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: left;
+    padding: 16px 13px;
+    white-space: nowrap;
+}
+
+td {
+    color: #475569;
+    font-size: 12px;
+    padding: 16px 13px;
+    white-space: nowrap;
+    border-top: 1px solid #edf1f5;
+}
+
+tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+tbody tr:hover {
+    background: #eef8f6;
+}
+
+.client-name {
+    color: #142c49;
+    font-weight: 600;
+}
+
+.balance {
+    color: #b45309;
+    font-weight: 700;
+}
+
+.empty-message,
+.empty-users {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+}
+
+.empty-users h3 {
+    color: #142c49;
+    margin-bottom: 8px;
+}
+
+.alert {
+    padding: 13px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.alert.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.alert.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+@media (max-width: 650px) {
+    .loan-grid,
+    .calculation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .loan-form-card {
+        padding: 18px;
+    }
+
+    .calculation-heading,
+    .table-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
